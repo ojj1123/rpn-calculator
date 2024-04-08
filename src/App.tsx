@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useStepper } from "./hooks/useStepper";
 import { infixToPostfix, type Operator, tokenize } from "./utils/infix-to-postfix";
 
 // TODO would be input form state
@@ -45,6 +45,13 @@ function App() {
             >
               중단
             </button>
+            <button
+              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
+              type="button"
+              onClick={() => stepper.reset()}
+            >
+              초기화
+            </button>
           </div>
         </div>
       </div>
@@ -71,48 +78,6 @@ function OperatorStack({ stack }: { stack: Operator[] }) {
 
 function RPN({ postfix }: { postfix: string }) {
   return <p className="text-xl">{postfix}</p>;
-}
-
-type Status = "running" | "pause";
-
-function useStepper({ initialStep = 0, endStep = 0 }) {
-  const [step, setStep] = useState(initialStep);
-  const [status, setStatus] = useState<Status>("pause");
-
-  const start = () => {
-    setStatus("running");
-  };
-
-  const stop = () => {
-    setStatus("pause");
-  };
-
-  useEffect(() => {
-    if (step >= endStep) {
-      setStatus("pause");
-    }
-  }, [step, endStep]);
-
-  useEffect(() => {
-    let intervalId: number | null = null;
-
-    if (status === "running") {
-      intervalId = setInterval(() => {
-        setStep((prev) => prev + 1);
-      }, 300);
-    } else {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    }
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [status]);
-
-  return { step, start, stop };
 }
 
 export default App;
