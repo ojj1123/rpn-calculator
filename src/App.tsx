@@ -17,7 +17,10 @@ function App() {
       <ul className="flex gap-3">
         {tokens.map((token, index) => {
           return (
-            <li key={index} className={`${index === exp.index ? "text-red-500" : "text-black"}`}>
+            <li
+              key={index}
+              className={`${index === exp.index ? "text-red-500" : "text-black"} text-xl`}
+            >
               {token}
             </li>
           );
@@ -25,13 +28,21 @@ function App() {
       </ul>
       <div className="flex gap-5">
         <OperatorStack stack={operatorStack} />
-        <div className="flex flex-col">
+        <div className="flex flex-1 flex-col justify-between">
           <RPN postfix={postfix} />
-          <div className="flex">
-            <button type="button" onClick={() => stepper.start()}>
+          <div className="flex gap-2">
+            <button
+              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
+              type="button"
+              onClick={() => stepper.start()}
+            >
               시작
             </button>
-            <button type="button" onClick={() => stepper.stop()}>
+            <button
+              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
+              type="button"
+              onClick={() => stepper.stop()}
+            >
               중단
             </button>
           </div>
@@ -43,11 +54,11 @@ function App() {
 
 function OperatorStack({ stack }: { stack: Operator[] }) {
   return (
-    <ul className="flex h-48 w-24 flex-col-reverse gap-2 rounded-b-sm border-2 border-blue-500 border-t-transparent bg-blue-300 p-1">
+    <ul className="flex h-48 w-32 flex-col-reverse gap-2 rounded-b-sm border-2 border-blue-500 border-t-transparent bg-blue-300 p-1">
       {stack.map((op, index) => {
         return (
           <li
-            className="w-full rounded-sm border-2 border-red-500 bg-red-300 p-2 text-center"
+            className="w-full rounded-md border-2 border-red-500 bg-red-300 p-2 text-center text-lg"
             key={index}
           >
             {op}
@@ -59,7 +70,7 @@ function OperatorStack({ stack }: { stack: Operator[] }) {
 }
 
 function RPN({ postfix }: { postfix: string }) {
-  return <>{postfix}</>;
+  return <p className="text-xl">{postfix}</p>;
 }
 
 type Status = "running" | "pause";
