@@ -1,26 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
-type Status = "running" | "pause";
+type State = { status: "init" | "running" | "pause" | "end"; step: number };
+type Action =
+  | { type: "START" }
+  | { type: "PAUSE" }
+  | { type: "RESET"; payload: { initialStep: number } }
+  | { type: "END" }
+  | { type: "INCREMENTAL" };
 
-export function usePlayer({ initialStep = 0, endStep = 0 }) {
-  const [step, setStep] = useState(initialStep);
-  const [status, setStatus] = useState<Status>("pause");
+export function usePlayer({ initialStep = 0, endStep = 0, interval = 500 }) {
+  const [state, dispatch] = useReducer(reducer, { status: "init", step: initialStep });
+  const { status, step } = state;
 
   const start = () => {
-    setStatus("running");
+    dispatch({ type: "START" });
   };
 
-  const stop = () => {
-    setStatus("pause");
+  const pause = () => {
+    dispatch({ type: "PAUSE" });
   };
 
   const reset = () => {
-    setStep(initialStep);
+    dispatch({ type: "RESET", payload: { initialStep } });
   };
 
   useEffect(() => {
     if (step >= endStep) {
-      setStatus("pause");
+      dispatch({ type: "END" });
     }
   }, [step, endStep]);
 
@@ -29,8 +35,8 @@ export function usePlayer({ initialStep = 0, endStep = 0 }) {
 
     if (status === "running") {
       intervalId = setInterval(() => {
-        setStep((prev) => prev + 1);
-      }, 300);
+        dispatch({ type: "INCREMENTAL" });
+      }, interval);
     } else {
       if (intervalId) {
         clearInterval(intervalId);
@@ -41,7 +47,43 @@ export function usePlayer({ initialStep = 0, endStep = 0 }) {
         clearInterval(intervalId);
       }
     };
-  }, [status]);
+  }, [status, interval]);
 
-  return { step, start, stop, reset };
+  return { status, step, start, pause, reset };
+}
+
+function reducer(state: State, action: Action): State {
+  const { status } = state;
+  switch (action.type) {
+    case "START": {
+      if (status === "init" || status === "pause") {
+        return { ...state, status: "running" };
+      }
+      break;
+    }
+    case "PAUSE": {
+      if (status === "running") {
+        return { ...state, status: "pause" };
+      }
+      break;
+    }
+    case "RESET": {
+      if (status !== "init") {
+        return { status: "init", step: action.payload.initialStep };
+      }
+      break;
+    }
+    case "END": {
+      if (status === "pause" || status === "running") {
+        return { ...state, status: "end" };
+      }
+      break;
+    }
+    case "INCREMENTAL": {
+      if (status === "running") {
+        return { ...state, step: state.step + 1 };
+      }
+    }
+  }
+  return state;
 }
