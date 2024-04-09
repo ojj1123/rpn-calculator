@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 type Status = "running" | "pause";
 
-export function useStepper({ initialStep = 0, endStep = 0 }) {
+export function usePlayer({ initialStep = 0, endStep = 0 }) {
   const [step, setStep] = useState(initialStep);
   const [status, setStatus] = useState<Status>("pause");
 

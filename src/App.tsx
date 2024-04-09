@@ -1,4 +1,4 @@
-import { useStepper } from "./hooks/useStepper";
+import { usePlayer } from "./hooks/use-player";
 import { infixToPostfix, type Operator, tokenize } from "./utils/infix-to-postfix";
 
 // TODO would be input form state
@@ -7,10 +7,10 @@ const tokens = tokenize(expression);
 const result = infixToPostfix(tokens);
 
 function App() {
-  const stepper = useStepper({ initialStep: 0, endStep: result.length - 1 });
-  const exp = result[stepper.step].exp;
-  const operatorStack = result[stepper.step].operatorStack;
-  const postfix = result[stepper.step].postfix.join(" ");
+  const player = usePlayer({ initialStep: 0, endStep: result.length - 1 });
+  const exp = result[player.step].exp;
+  const operatorStack = result[player.step].operatorStack;
+  const postfix = result[player.step].postfix.join(" ");
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-10">
@@ -41,21 +41,21 @@ function App() {
             <button
               className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
               type="button"
-              onClick={() => stepper.start()}
+              onClick={() => player.start()}
             >
               시작
             </button>
             <button
               className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
               type="button"
-              onClick={() => stepper.stop()}
+              onClick={() => player.stop()}
             >
               중단
             </button>
             <button
               className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
               type="button"
-              onClick={() => stepper.reset()}
+              onClick={() => player.reset()}
             >
               초기화
             </button>
