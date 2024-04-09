@@ -7,10 +7,16 @@ const tokens = tokenize(expression);
 const result = infixToPostfix(tokens);
 
 function App() {
-  const player = usePlayer({ initialStep: 0, endStep: result.length - 1, interval: 500 });
-  const exp = result[player.step].exp;
-  const operatorStack = result[player.step].operatorStack;
-  const postfix = result[player.step].postfix.join(" ");
+  const { state, ...playerMethod } = usePlayer({
+    initialStep: 0,
+    endStep: result.length - 1,
+    interval: 500,
+  });
+  const { step, status, isFirst, isLast } = state;
+  const exp = result[step].exp;
+  const operatorStack = result[step].operatorStack;
+  const postfix = result[step].postfix.join(" ");
+  const isRunning = status === "running";
 
   return (
     <main className="flex h-full flex-col items-center justify-center gap-10">
@@ -39,25 +45,35 @@ function App() {
           </div>
           <div className="flex gap-2">
             <button
-              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
+              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 disabled:cursor-not-allowed disabled:opacity-70"
               type="button"
-              onClick={() => player.start()}
+              disabled={isFirst}
+              onClick={playerMethod.prev}
             >
-              시작
+              ⏪️
+            </button>
+            <button
+              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 disabled:cursor-not-allowed disabled:opacity-70"
+              type="button"
+              disabled={isLast}
+              onClick={isRunning ? playerMethod.pause : playerMethod.start}
+            >
+              {isRunning ? "⏸️" : "▶️"}
+            </button>
+            <button
+              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 disabled:cursor-not-allowed disabled:opacity-70"
+              type="button"
+              disabled={isLast}
+              onClick={playerMethod.next}
+            >
+              ⏩️
             </button>
             <button
               className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
               type="button"
-              onClick={() => player.pause()}
+              onClick={() => playerMethod.reset()}
             >
-              중단
-            </button>
-            <button
-              className="cursor-pointer rounded-md border border-transparent bg-gray-500 px-3 py-2 text-white transition-[border-color] hover:border-gray-900 "
-              type="button"
-              onClick={() => player.reset()}
-            >
-              초기화
+              🔄
             </button>
           </div>
         </div>

@@ -1,16 +1,18 @@
 import { useEffect, useReducer } from "react";
 
-type State = { status: "init" | "running" | "pause" | "end"; step: number };
+type State = { status: "running" | "pause"; step: number };
 type Action =
   | { type: "START" }
   | { type: "PAUSE" }
   | { type: "RESET"; payload: { initialStep: number } }
   | { type: "END" }
-  | { type: "INCREMENTAL" };
+  | { type: "INCREMENTAL"; payload: { endStep: number } }
+  | { type: "DECREMENTAL"; payload: { initialStep: number } };
 
 export function usePlayer({ initialStep = 0, endStep = 0, interval = 500 }) {
-  const [state, dispatch] = useReducer(reducer, { status: "init", step: initialStep });
-  const { status, step } = state;
+  const [{ status, step }, dispatch] = useReducer(reducer, { status: "pause", step: initialStep });
+  const isFirst = step === initialStep;
+  const isLast = step === endStep;
 
   const start = () => {
     dispatch({ type: "START" });
@@ -24,18 +26,20 @@ export function usePlayer({ initialStep = 0, endStep = 0, interval = 500 }) {
     dispatch({ type: "RESET", payload: { initialStep } });
   };
 
-  useEffect(() => {
-    if (step >= endStep) {
-      dispatch({ type: "END" });
-    }
-  }, [step, endStep]);
+  const prev = () => {
+    dispatch({ type: "DECREMENTAL", payload: { initialStep } });
+  };
+
+  const next = () => {
+    dispatch({ type: "INCREMENTAL", payload: { endStep } });
+  };
 
   useEffect(() => {
     let intervalId: number | null = null;
 
     if (status === "running") {
       intervalId = setInterval(() => {
-        dispatch({ type: "INCREMENTAL" });
+        dispatch({ type: "INCREMENTAL", payload: { endStep } });
       }, interval);
     } else {
       if (intervalId) {
@@ -47,16 +51,23 @@ export function usePlayer({ initialStep = 0, endStep = 0, interval = 500 }) {
         clearInterval(intervalId);
       }
     };
-  }, [status, interval]);
+  }, [status, interval, endStep]);
 
-  return { status, step, start, pause, reset };
+  const state = {
+    step,
+    status,
+    isFirst,
+    isLast,
+  };
+
+  return { state, start, pause, reset, prev, next };
 }
 
 function reducer(state: State, action: Action): State {
   const { status } = state;
   switch (action.type) {
     case "START": {
-      if (status === "init" || status === "pause") {
+      if (status === "pause") {
         return { ...state, status: "running" };
       }
       break;
@@ -68,21 +79,22 @@ function reducer(state: State, action: Action): State {
       break;
     }
     case "RESET": {
-      if (status !== "init") {
-        return { status: "init", step: action.payload.initialStep };
-      }
-      break;
+      return { status: "pause", step: action.payload.initialStep };
     }
     case "END": {
-      if (status === "pause" || status === "running") {
-        return { ...state, status: "end" };
-      }
-      break;
+      return { ...state, status: "pause" };
     }
     case "INCREMENTAL": {
-      if (status === "running") {
-        return { ...state, step: state.step + 1 };
+      if (state.step === action.payload.endStep) {
+        return { ...state, status: "pause" };
       }
+      return { ...state, step: state.step + 1 };
+    }
+    case "DECREMENTAL": {
+      if (state.step === action.payload.initialStep) {
+        return { ...state, status: "running" };
+      }
+      return { ...state, step: state.step - 1 };
     }
   }
   return state;
